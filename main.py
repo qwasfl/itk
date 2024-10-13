@@ -1,4 +1,5 @@
 
+# После обратного отсчета отправляем приветственное сообщение
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
@@ -11,6 +12,11 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.utils import executor
+
+CHANNEL_USERNAME = '@qwasfl' 
 
 class CountdownStates(StatesGroup):
     countdown = State()
@@ -24,6 +30,16 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
+@dp.message_handler()
+async def check_subscription(message: types.Message):
+    try:
+        chat_member = await bot.get_chat_member(CHANNEL_USERNAME, message.from_user.id)
+        if chat_member.status in ['member', 'creator', 'administrator']:
+            await message.answer("Вы подписаны на канал!")
+        else:
+            await message.answer("Вы не подписаны на канал.")
+    except Exception as e:
+        await message.answer("Не удалось проверить подписку. Проверьте, является ли бот администратором канала.")
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
